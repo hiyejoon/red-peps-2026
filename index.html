@@ -319,7 +319,7 @@
             border-radius: 50%;
             margin-bottom: 0;
             font-size: 13px;
-            background: rgba(150, 150, 150, 0.4); /* 조이스틱과 유사한 회색 반투명 */
+            background: rgba(150, 150, 150, 0.4);
             border: 2px solid rgba(200, 200, 200, 0.5);
             color: #fff;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
@@ -328,6 +328,15 @@
         }
         .mobile-btn-row .ctrl-btn:active {
             background: rgba(200, 200, 200, 0.6);
+        }
+
+        /* 무기 시각화 개선 */
+        #weapon-canvas {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            pointer-events: none;
+            z-index: 8;
         }
 
         @media (pointer: coarse) { #mobile-controls { display: flex; } }
@@ -351,154 +360,130 @@
                 <button class="tool-btn" data-tool="wall-3"><span class="tool-color wall-3"></span>파란 벽</button>
                 <button class="tool-btn" data-tool="wall-4"><span class="tool-color wall-4"></span>회색 벽</button>
                 <button class="tool-btn" data-tool="wall-5"><span class="tool-color wall-5"></span>노란 벽</button>
-                <button class="tool-btn" data-tool="eraser"><span class="tool-color wall-0"></span>지우개 (빈 공간)</button>
+                <button class="tool-btn" data-tool="wall-0"><span class="tool-color wall-0"></span>지우개</button>
             </div>
 
             <div class="panel-section">
-                <h3>엔티티 & 오브젝트 배치</h3>
-                <button class="tool-btn" data-tool="player">😎 플레이어 시작 지점</button>
-                <button class="tool-btn" data-tool="enemy" id="btn-enemy">👹 적 (몬스터)</button>
-                
-                <button class="tool-btn" data-tool="health">💊 구급상자 (체력 30 회복)</button>
-                <button class="tool-btn" data-tool="treasure">💎 보물 (500점 획득)</button>
-                <button class="tool-btn" data-tool="exit">🚪 출구 (스테이지 클리어)</button>
-                <button class="tool-btn" data-tool="sign">📝 텍스트 표지판</button>
-                
+                <h3>엔티티</h3>
+                <button class="tool-btn" data-tool="player"><span style="font-size: 16px;">😎</span> 플레이어</button>
+                <button class="tool-btn" data-tool="enemy"><span style="font-size: 16px;">👹</span> 근거리 적</button>
+                <button class="tool-btn" data-tool="enemy-ranged"><span style="font-size: 16px;">👽</span> 원거리 적</button>
+                <button class="tool-btn" data-tool="health"><span style="font-size: 16px;">💊</span> 체력 회복</button>
+                <button class="tool-btn" data-tool="treasure"><span style="font-size: 16px;">💎</span> 보물</button>
+                <button class="tool-btn" data-tool="exit"><span style="font-size: 16px;">🚪</span> 출구</button>
                 <div id="enemy-config">
-                    <button class="action-btn btn-sprite" id="btn-open-sprite">🎨 커스텀 도트 그림판 열기</button>
                     <div class="config-group">
-                        <label>공격 유형</label>
-                        <select id="en-type">
-                            <option value="melee">근접 공격 (가까이 오면 피해)</option>
-                            <option value="ranged">원거리 총격 (발사체 발사)</option>
+                        <label>적 타입:</label>
+                        <select id="enemy-type">
+                            <option value="melee">근거리</option>
+                            <option value="ranged">원거리</option>
                         </select>
                     </div>
                     <div class="config-group">
-                        <label>이동 방식</label>
-                        <select id="en-move">
-                            <option value="active">능동적 추적 (플레이어를 향해 이동)</option>
-                            <option value="static">고정 포탑 (제자리 고정)</option>
+                        <label>움직임: <span class="range-val" id="val-movement">활동적</span></label>
+                        <select id="enemy-movement">
+                            <option value="active">활동적</option>
+                            <option value="static">고정</option>
                         </select>
                     </div>
                 </div>
             </div>
 
             <div class="panel-section">
-                <h3>플레이어 세부 설정</h3>
+                <h3>플레이어 설정</h3>
                 <div class="config-group">
-                    <label>이동 속도 <span class="range-val" id="val-speed">5.0</span></label>
-                    <input type="range" id="cfg-speed" min="2.0" max="10.0" step="0.5" value="5.0">
+                    <label>이동 속도: <span class="range-val" id="val-speed">5.0</span></label>
+                    <input type="range" id="cfg-speed" min="1" max="10" step="0.1" value="5.0">
                 </div>
                 <div class="config-group">
-                    <label>시점 회전 속도 <span class="range-val" id="val-rot">3.0</span></label>
-                    <input type="range" id="cfg-rot" min="1.0" max="6.0" step="0.5" value="3.0">
+                    <label>회전 속도: <span class="range-val" id="val-rot">3.0</span></label>
+                    <input type="range" id="cfg-rot" min="1" max="5" step="0.1" value="3.0">
                 </div>
                 <div class="config-group">
-                    <label>최대 체력 (초기 HP) <span class="range-val" id="val-hp">100</span></label>
-                    <input type="range" id="cfg-hp" min="50" max="300" step="10" value="100">
+                    <label>최대 체력: <span class="range-val" id="val-hp">100</span></label>
+                    <input type="range" id="cfg-hp" min="50" max="200" step="10" value="100">
                 </div>
                 <div class="config-group">
-                    <label>최대 탄약 수 <span class="range-val" id="val-ammo">10</span></label>
-                    <input type="range" id="cfg-ammo" min="5" max="50" step="1" value="10">
+                    <label>최대 탄약: <span class="range-val" id="val-ammo">30</span></label>
+                    <input type="range" id="cfg-ammo" min="10" max="100" step="5" value="30">
                 </div>
                 <div class="config-group">
-                    <label>시야각 (FOV) <span class="range-val" id="val-fov">66</span></label>
-                    <input type="range" id="cfg-fov" min="60" max="120" step="1" value="66">
+                    <label>시야각(FOV): <span class="range-val" id="val-fov">66</span></label>
+                    <input type="range" id="cfg-fov" min="30" max="120" step="5" value="66">
                 </div>
             </div>
 
             <div class="panel-section">
-                <h3>화면 효과 (레트로 FX)</h3>
+                <h3>화면 효과</h3>
                 <div class="config-group">
-                    <label>픽셀화 (해상도 저하) <span class="range-val" id="val-res">100%</span></label>
-                    <input type="range" id="cfg-res" min="10" max="100" step="5" value="100">
+                    <label>해상도: <span class="range-val" id="val-res">100%</span></label>
+                    <input type="range" id="cfg-res" min="25" max="100" step="5" value="100">
                 </div>
                 <div class="config-group">
-                    <label>오버레이 무늬</label>
+                    <label>오버레이:</label>
                     <select id="cfg-overlay">
                         <option value="none">없음</option>
-                        <option value="scanline" selected>CRT 스캔라인 + 비네팅</option>
-                        <option value="grid">LCD 픽셀 그리드</option>
+                        <option value="scanline" selected>스캔라인</option>
+                        <option value="grid">그리드</option>
                     </select>
                 </div>
                 <div class="config-group">
-                    <label>무늬 강도 <span class="range-val" id="val-overlay-int">50%</span></label>
+                    <label>오버레이 강도: <span class="range-val" id="val-overlay-int">50%</span></label>
                     <input type="range" id="cfg-overlay-int" min="0" max="100" step="10" value="50">
                 </div>
                 <div class="config-group">
-                    <label>색감 필터</label>
+                    <label>색상 필터:</label>
                     <select id="cfg-color-filter">
-                        <option value="none">기본 (없음)</option>
-                        <option value="sepia">세피아 (클래식)</option>
-                        <option value="grayscale">흑백 (느와르)</option>
-                        <option value="neon">네온 (사이버펑크)</option>
+                        <option value="none" selected>없음</option>
+                        <option value="sepia">세피아</option>
+                        <option value="grayscale">그레이스케일</option>
+                        <option value="neon">네온</option>
                     </select>
+                </div>
+                <div class="config-group">
+                    <label><input type="checkbox" id="fog-enable" checked> 안개 효과</label>
+                </div>
+                <div class="config-group" id="fog-density-group">
+                    <label>안개 거리: <span class="range-val" id="val-fog">20</span></label>
+                    <input type="range" id="fog-density" min="5" max="50" step="1" value="20">
+                </div>
+                <div class="config-group">
+                    <label><input type="checkbox" id="minimap-enable" checked> 미니맵</label>
                 </div>
             </div>
 
             <div class="panel-section">
-                <h3>환경 설정</h3>
-                <div class="config-group">
-                    <label style="display:flex; align-items:center; gap:5px; cursor:pointer;">
-                        <input type="checkbox" id="fog-enable" checked> 안개 효과 사용 (벽/바닥)
-                    </label>
-                </div>
-                <div class="config-group" id="fog-density-group">
-                    <label>안개 가시거리 (낮을수록 짙음)</label>
-                    <input type="range" id="fog-density" min="3" max="25" value="10" style="width:100%;">
-                </div>
-                <div class="config-group">
-                    <label style="display:flex; align-items:center; gap:5px; cursor:pointer;">
-                        <input type="checkbox" id="minimap-enable" checked> 미니맵 표시
-                    </label>
-                </div>
+                <h3>스프라이트 에디터</h3>
+                <button class="action-btn btn-sprite" id="btn-open-sprite">스프라이트 편집</button>
             </div>
 
-            <button class="action-btn" id="btn-play">▶ 맵 테스트 플레이</button>
-            <button class="action-btn btn-export" id="btn-export">💾 독립된 게임으로 다운로드</button>
-            
-            <div style="margin-top: 15px; border-top: 1px solid #555; padding-top: 15px;">
-                <button class="action-btn btn-json-export" id="btn-json-export">📥 맵 데이터 저장 (JSON)</button>
-                <label class="action-btn btn-json-import">
-                    📤 맵 데이터 불러오기 (JSON)
-                    <input type="file" id="btn-json-import" accept=".json">
-                </label>
+            <div class="panel-section">
+                <h3>게임 플레이</h3>
+                <button class="action-btn" id="btn-play">게임 시작</button>
             </div>
-            
-            <button class="action-btn" id="btn-clear" style="background: #666; margin-top: 10px;">🗑 맵 전체 초기화</button>
-        </div>
-    </div>
 
-    <!-- 스프라이트 에디터 모달 -->
-    <div id="sprite-modal">
-        <div class="modal-content">
-            <h2 style="margin: 0;">커스텀 적 도트 그림판 (32x32)</h2>
-            <div class="sp-tools">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <input type="color" id="sp-color" value="#ff0000">
-                    <label style="cursor:pointer;"><input type="checkbox" id="sp-eraser"> 지우개 모드</label>
-                </div>
-                <label class="file-upload-btn">
-                    📷 사진 변환
-                    <input type="file" id="sp-upload" accept="image/*">
-                </label>
-            </div>
-            <div id="sprite-grid"></div>
-            <div style="display:flex; gap: 10px; width:100%;">
-                <button class="action-btn" id="btn-save-sprite" style="flex:2;">✔️ 적용 및 닫기</button>
-                <button class="action-btn" id="btn-clear-sprite" style="flex:1; background:#666;">지우기</button>
+            <div class="panel-section">
+                <h3>내보내기/가져오기</h3>
+                <button class="action-btn btn-export" id="btn-export">게임 내보내기</button>
+                <button class="action-btn btn-json-export" id="btn-json-export">맵 JSON 내보내기</button>
+                <button class="action-btn btn-json-import" id="btn-json-import">맵 JSON 가져오기
+                    <input type="file" accept=".json">
+                </button>
             </div>
         </div>
     </div>
 
     <!-- 2. 게임 플레이 UI -->
     <div id="game-container">
-        <canvas id="gameCanvas" width="640" height="480"></canvas>
+        <canvas id="gameCanvas"></canvas>
+        <canvas id="weapon-canvas"></canvas>
         <div id="fx-overlay"></div>
         <div id="damage-overlay"></div>
+        
         <div id="ui-layer">
-            <div class="instruction">W,A,S,D: 이동 | 방향키: 회전 | 스페이스바: 사격 | R: 장전</div>
-            
+            <div class="instruction">
+                WASD/화살표: 이동 | 마우스/스페이스: 사격 | R: 장전
+            </div>
             <div class="top-right-hud">
                 <canvas id="minimapCanvas" width="150" height="112" style="border:1px solid rgba(255, 255, 255, 0.1); background:rgba(0,0,0,0.4); border-radius:3px; box-shadow: 0 0 10px rgba(0,255,204,0.1);"></canvas>
                 
@@ -548,7 +533,181 @@
         </div>
     </div>
 
+    <!-- 스프라이트 에디터 모달 -->
+    <div id="sprite-modal">
+        <div class="modal-content">
+            <h2>스프라이트 에디터</h2>
+            <div id="sprite-grid"></div>
+            <div class="sp-tools">
+                <input type="color" id="sp-color" value="#ff0000">
+                <label style="color: #ccc;">
+                    <input type="checkbox" id="sp-eraser"> 지우개
+                </label>
+                <label class="file-upload-btn">
+                    이미지 업로드
+                    <input type="file" id="sp-upload" accept="image/*">
+                </label>
+            </div>
+            <div style="display: flex; gap: 10px; width: 100%;">
+                <button class="action-btn" id="btn-clear-sprite" style="background: #d32f2f;">전체 지우기</button>
+                <button class="action-btn" id="btn-save-sprite">저장</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // ==========================================
+        // [ 사운드 시스템 (Web Audio API) ]
+        // ==========================================
+        class SoundManager {
+            constructor() {
+                this.audioContext = null;
+                this.masterVolume = 0.3;
+                this.init();
+            }
+
+            init() {
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (e) {
+                    console.warn('Web Audio API not supported');
+                }
+            }
+
+            playSound(type) {
+                if (!this.audioContext || this.audioContext.state === 'suspended') return;
+
+                const now = this.audioContext.currentTime;
+                const osc = this.audioContext.createOscillator();
+                const gain = this.audioContext.createGain();
+                
+                osc.connect(gain);
+                gain.connect(this.audioContext.destination);
+                gain.gain.setValueAtTime(this.masterVolume, now);
+
+                switch(type) {
+                    case 'shoot':
+                        osc.frequency.setValueAtTime(150, now);
+                        osc.frequency.exponentialRampToValueAtTime(50, now + 0.1);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                        osc.start(now);
+                        osc.stop(now + 0.1);
+                        break;
+
+                    case 'hit':
+                        osc.frequency.setValueAtTime(400, now);
+                        osc.frequency.exponentialRampToValueAtTime(200, now + 0.05);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                        osc.start(now);
+                        osc.stop(now + 0.05);
+                        break;
+
+                    case 'reload_start':
+                        osc.frequency.setValueAtTime(200, now);
+                        osc.frequency.linearRampToValueAtTime(300, now + 0.2);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                        osc.start(now);
+                        osc.stop(now + 0.2);
+                        break;
+
+                    case 'reload_end':
+                        osc.frequency.setValueAtTime(600, now);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                        osc.start(now);
+                        osc.stop(now + 0.1);
+                        break;
+
+                    case 'dryfire':
+                        osc.frequency.setValueAtTime(100, now);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                        osc.start(now);
+                        osc.stop(now + 0.05);
+                        break;
+
+                    case 'pickup':
+                        osc.frequency.setValueAtTime(800, now);
+                        osc.frequency.linearRampToValueAtTime(1200, now + 0.1);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                        osc.start(now);
+                        osc.stop(now + 0.1);
+                        break;
+
+                    case 'win':
+                        osc.frequency.setValueAtTime(800, now);
+                        osc.frequency.linearRampToValueAtTime(1200, now + 0.3);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                        osc.start(now);
+                        osc.stop(now + 0.3);
+                        break;
+                }
+            }
+        }
+
+        const soundManager = new SoundManager();
+        function playSound(type) {
+            soundManager.playSound(type);
+        }
+
+        // ==========================================
+        // [ 무기 렌더링 시스템 ]
+        // ==========================================
+        class WeaponRenderer {
+            constructor(canvasId) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.bobOffset = 0;
+                this.shootRecoil = 0;
+                this.updateCanvasSize();
+                window.addEventListener('resize', () => this.updateCanvasSize());
+            }
+
+            updateCanvasSize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            draw(bobOffset, shootRecoil, isShooting) {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                const baseX = this.canvas.width - 80;
+                const baseY = this.canvas.height - 100 + bobOffset * 5;
+                const recoilOffset = shootRecoil * 10;
+
+                // 무기 몸체 (레트로 스타일)
+                this.ctx.fillStyle = '#444';
+                this.ctx.fillRect(baseX - 20 - recoilOffset, baseY - 30, 40, 60);
+
+                // 총열
+                this.ctx.fillStyle = '#222';
+                this.ctx.fillRect(baseX - 5 - recoilOffset, baseY - 40, 10, 20);
+
+                // 트리거 가드
+                this.ctx.strokeStyle = '#666';
+                this.ctx.lineWidth = 2;
+                this.ctx.beginPath();
+                this.ctx.arc(baseX - recoilOffset, baseY + 10, 15, 0, Math.PI * 2);
+                this.ctx.stroke();
+
+                // 조준선
+                if (!isShooting) {
+                    this.ctx.strokeStyle = 'rgba(255, 100, 100, 0.5)';
+                    this.ctx.lineWidth = 1;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(baseX - recoilOffset, baseY - 50);
+                    this.ctx.lineTo(baseX - recoilOffset, baseY - 100);
+                    this.ctx.stroke();
+                }
+
+                // 발사 이펙트
+                if (isShooting) {
+                    this.ctx.fillStyle = 'rgba(255, 150, 0, 0.6)';
+                    this.ctx.fillRect(baseX - 8 - recoilOffset, baseY - 45, 16, 20);
+                }
+            }
+        }
+
+        const weaponRenderer = new WeaponRenderer('weapon-canvas');
+
         // ==========================================
         // [ 글로벌 변수 및 스프라이트 데이터 ]
         // ==========================================
@@ -733,7 +892,7 @@
                 btn.classList.add('active');
                 currentTool = btn.dataset.tool;
                 const enemyConfig = document.getElementById('enemy-config');
-                if(enemyConfig) enemyConfig.style.display = (currentTool === 'enemy') ? 'block' : 'none';
+                if(enemyConfig) enemyConfig.style.display = (currentTool === 'enemy' || currentTool === 'enemy-ranged') ? 'block' : 'none';
             });
         });
 
@@ -770,234 +929,170 @@
                         badge.className = 'badge-sign'; badge.textContent = '📝';
                         cellEl.appendChild(badge);
                     }
-
-                    cellEl.addEventListener('mousedown', () => { isMouseDown = true; applyTool(x, y); });
-                    cellEl.addEventListener('mouseenter', () => { if(isMouseDown) applyTool(x, y); });
+                    
+                    cellEl.addEventListener('mousedown', () => { isMouseDown = true; handleCellClick(x, y); });
+                    cellEl.addEventListener('mouseenter', () => { if(isMouseDown) handleCellClick(x, y); });
                     gridEl.appendChild(cellEl);
                 }
             }
         }
 
-        document.addEventListener('mouseup', () => isMouseDown = false);
-
-        function applyTool(x, y) {
-            const cell = editorMapData[y][x];
-            if (currentTool.startsWith('wall-')) {
-                cell.wall = parseInt(currentTool.split('-')[1]);
-                cell.entity = null;
-            } else if (currentTool === 'eraser') {
-                cell.wall = 0; cell.entity = null; cell.sign = null;
-            } else if (currentTool === 'player') {
-                if(cell.wall > 0) return;
-                for(let iy=0; iy<ROWS; iy++) {
-                    for(let ix=0; ix<COLS; ix++) { if(editorMapData[iy][ix].entity === 'player') editorMapData[iy][ix].entity = null; }
-                }
-                cell.entity = 'player';
-            } else if (currentTool === 'enemy') {
-                if(cell.wall > 0 || cell.entity === 'player') return;
-                cell.entity = { type: document.getElementById('en-type').value, move: document.getElementById('en-move').value };
-            } else if (['health', 'treasure', 'exit'].includes(currentTool)) {
-                if(cell.wall > 0 || cell.entity === 'player') return;
-                cell.entity = currentTool;
-            } else if (currentTool === 'sign') {
-                const txt = prompt("표지판에 표시할 텍스트를 입력하세요:");
-                if (txt !== null) {
-                    cell.sign = txt.trim() === '' ? null : txt;
-                }
+        function handleCellClick(x, y) {
+            const tool = currentTool;
+            if (tool.startsWith('wall-')) {
+                const wallNum = parseInt(tool.split('-')[1]);
+                editorMapData[y][x].wall = wallNum;
+            } else if (tool === 'player') {
+                for(let yy=0; yy<ROWS; yy++) for(let xx=0; xx<COLS; xx++) if(editorMapData[yy][xx].entity === 'player') editorMapData[yy][xx].entity = null;
+                editorMapData[y][x].entity = 'player';
+            } else if (tool === 'enemy' || tool === 'enemy-ranged') {
+                const type = tool === 'enemy' ? 'melee' : 'ranged';
+                const movement = document.getElementById('enemy-movement')?.value || 'active';
+                editorMapData[y][x].entity = { type, movement };
+            } else if (tool === 'health') {
+                editorMapData[y][x].entity = 'health';
+            } else if (tool === 'treasure') {
+                editorMapData[y][x].entity = 'treasure';
+            } else if (tool === 'exit') {
+                editorMapData[y][x].entity = 'exit';
             }
             renderGrid();
         }
 
-        const btnClear = document.getElementById('btn-clear');
-        if(btnClear) btnClear.addEventListener('click', initDefaultMap);
+        document.addEventListener('mouseup', () => isMouseDown = false);
 
-        // ==========================================
-        // [ 맵 데이터 JSON 저장 및 불러오기 ]
-        // ==========================================
+        // JSON 내보내기
         const btnJsonExport = document.getElementById('btn-json-export');
-        if (btnJsonExport) {
-            btnJsonExport.addEventListener('click', () => {
-                const mapSaveData = {
-                    mapData: editorMapData,
-                    customSprite: customSprite
-                };
-                const jsonStr = JSON.stringify(mapSaveData);
-                const blob = new Blob([jsonStr], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                a.download = 'raycasting_map_data.json';
-                document.body.appendChild(a);
-                a.click();
-                URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-            });
-        }
-
-        const btnJsonImport = document.getElementById('btn-json-import');
-        if (btnJsonImport) {
-            btnJsonImport.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    try {
-                        const parsedData = JSON.parse(event.target.result);
-                        if (parsedData && parsedData.mapData) {
-                            editorMapData = parsedData.mapData;
-                            customSprite = parsedData.customSprite || null;
-                            renderGrid();
-                            alert('맵 데이터를 성공적으로 불러왔습니다!');
-                        } else {
-                            alert('유효한 맵 데이터 파일이 아닙니다.');
-                        }
-                    } catch (err) {
-                        alert('파일을 읽는 중 오류가 발생했습니다.');
-                    }
-                    e.target.value = ''; // 동일 파일 재선택을 위해 초기화
-                };
-                reader.readAsText(file);
-            });
-        }
-
-        // ==========================================
-        // [ 게임 엔진 시스템 연동 ]
-        // ==========================================
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d', { alpha: false });
-        let screenWidth = canvas.width;
-        let screenHeight = canvas.height;
-
-        let gameReqId;
-        let isPlaying = false;
-        
-        let map = [], enemies = [], projectiles = [], items = [];
-        let signs = {};         
-        let signTextures = {};  
-        
-        let ZBuffer = new Float32Array(screenWidth);
-        let useFog = true, fogMaxDist = 10, useMinimap = true, score = 0;
-
-        const colors = {
-            1: { r: 150, g: 0, b: 0 }, 2: { r: 0, g: 150, b: 0 },
-            3: { r: 0, g: 0, b: 150 }, 4: { r: 150, g: 150, b: 150 }, 5: { r: 150, g: 150, b: 0 }
-        };
-
-        const player = {
-            x: 0, y: 0, dirX: 1, dirY: 0, planeX: 0, planeY: 0.66,
-            moveSpeed: 5.0, rotSpeed: 3.0, weaponBob: 0, isShooting: false, shootTimer: 0, 
-            health: 100, maxHealth: 100,
-            
-            // 탄약 및 장전 시스템
-            ammo: 10, maxAmmo: 10, isReloading: false, reloadTimer: 0
-        };
-        const keys = { forward:false, backward:false, reload: false, strafeLeft:false, strafeRight:false, rotLeft:false, rotRight:false };
-
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioCtx = new AudioContext();
-
-        function playSound(type) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            
-            if (type === 'shoot') {
-                osc.type = 'square'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-            } else if (type === 'hit') {
-                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(20, audioCtx.currentTime + 0.2);
-                gain.gain.setValueAtTime(0.4, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.2);
-            } else if (type === 'pickup') {
-                osc.type = 'sine'; osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-                osc.frequency.setValueAtTime(800, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.2, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.2);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.2);
-            } else if (type === 'win') {
-                osc.type = 'sine'; osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-                osc.frequency.setValueAtTime(600, audioCtx.currentTime + 0.2);
-                osc.frequency.setValueAtTime(800, audioCtx.currentTime + 0.4);
-                gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.8);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.8);
-            } else if (type === 'dryfire') {
-                osc.type = 'triangle'; osc.frequency.setValueAtTime(300, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.15, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.05);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.05);
-            } else if (type === 'reload_start') {
-                osc.type = 'triangle'; osc.frequency.setValueAtTime(100, audioCtx.currentTime);
-                osc.frequency.linearRampToValueAtTime(200, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.2, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.2);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.25);
-            } else if (type === 'reload_end') {
-                osc.type = 'square'; osc.frequency.setValueAtTime(250, audioCtx.currentTime);
-                osc.frequency.setValueAtTime(400, audioCtx.currentTime + 0.08);
-                gain.gain.setValueAtTime(0.2, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.25);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.25);
-            }
-        }
-
-        const fogEnable = document.getElementById('fog-enable');
-        if(fogEnable) fogEnable.addEventListener('change', (e) => {
-            document.getElementById('fog-density').disabled = !e.target.checked;
-            document.getElementById('fog-density').style.opacity = e.target.checked ? '1' : '0.5';
+        if(btnJsonExport) btnJsonExport.addEventListener('click', () => {
+            const json = JSON.stringify(editorMapData, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'map_data.json'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         });
 
-        function createSignTexture(text) {
-            const c = document.createElement('canvas'); c.width = 64; c.height = 64;
-            const cx = c.getContext('2d');
-            cx.fillStyle = '#8B4513'; cx.fillRect(2, 16, 60, 32);
-            cx.strokeStyle = '#5c2e0b'; cx.lineWidth = 2; cx.strokeRect(2, 16, 60, 32);
-            cx.fillStyle = 'white'; cx.textAlign = 'center'; cx.textBaseline = 'middle';
-            let fontSize = 14; cx.font = `bold ${fontSize}px sans-serif`;
-            while(cx.measureText(text).width > 56 && fontSize > 8) { fontSize--; cx.font = `bold ${fontSize}px sans-serif`; }
-            cx.fillText(text, 32, 32);
-            const imgData = cx.getImageData(0,0,64,64).data;
-            const tex2D = Array(64).fill().map(()=>Array(64).fill(null));
-            for(let y=0; y<64; y++) {
-                for(let x=0; x<64; x++) {
-                    const idx = (y*64+x)*4;
-                    if(imgData[idx+3] > 50) tex2D[y][x] = { r: imgData[idx], g: imgData[idx+1], b: imgData[idx+2] };
-                }
+        // JSON 가져오기
+        const btnJsonImport = document.getElementById('btn-json-import');
+        if(btnJsonImport) {
+            const fileInput = btnJsonImport.querySelector('input[type="file"]');
+            if(fileInput) {
+                btnJsonImport.addEventListener('click', () => fileInput.click());
+                fileInput.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        try {
+                            editorMapData = JSON.parse(event.target.result);
+                            renderGrid();
+                            alert('맵이 로드되었습니다!');
+                        } catch (err) {
+                            alert('파일 로드 실패: ' + err.message);
+                        }
+                    };
+                    reader.readAsText(file);
+                });
             }
-            return tex2D;
         }
 
-        function startGame(isStandaloneMode = false) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            map = []; enemies = []; projectiles = []; items = []; signs = {}; signTextures = {};
-            score = 0; updateScoreUI();
-            let playerFound = false;
+        initDefaultMap();
 
-            for(let y=0; y<ROWS; y++) {
-                let row = [];
-                for(let x=0; x<COLS; x++) {
-                    const cell = editorMapData[y][x];
-                    row.push(cell.wall);
-                    if (cell.entity === 'player') { player.x = x + 0.5; player.y = y + 0.5; playerFound = true; }
-                    else if (cell.entity && cell.entity.type) {
-                        enemies.push({ x: x + 0.5, y: y + 0.5, type: cell.entity.type, movement: cell.entity.move, alive: true, cooldown: 0, hp: 20 });
+        // ==========================================
+        // [ 게임 엔진 코어 ]
+        // ==========================================
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let screenWidth = 640, screenHeight = 480;
+        canvas.width = screenWidth; canvas.height = screenHeight;
+
+        let ZBuffer = new Float32Array(screenWidth);
+        let isPlaying = false, isStandaloneMode = false;
+        let gameReqId = null, lastTime = 0;
+        let score = 0;
+
+        const colors = {
+            0: {r: 0, g: 0, b: 0},
+            1: {r: 150, g: 0, b: 0},
+            2: {r: 0, g: 150, b: 0},
+            3: {r: 0, g: 0, b: 150},
+            4: {r: 150, g: 150, b: 150},
+            5: {r: 150, g: 150, b: 0}
+        };
+
+        let map = [], enemies = [], projectiles = [], items = [];
+        let signs = {}, signTextures = {};
+        let useFog = true, fogMaxDist = 20, useMinimap = true;
+        let fovVal = 66;
+
+        const player = {
+            x: 10, y: 7.5, dirX: 1, dirY: 0, planeX: 0, planeY: 0.66,
+            moveSpeed: 5, rotSpeed: 3, maxHealth: 100, health: 100,
+            maxAmmo: 30, ammo: 30, isReloading: false, reloadTimer: 0,
+            isShooting: false, shootTimer: 0, weaponBob: 0
+        };
+
+        const keys = { forward: false, backward: false, strafeLeft: false, strafeRight: false, rotLeft: false, rotRight: false };
+
+        function buildGameMap() {
+            map = [];
+            enemies = [];
+            items = [];
+            signs = {};
+            signTextures = {};
+            score = 0;
+
+            for (let y = 0; y < ROWS; y++) {
+                map[y] = [];
+                for (let x = 0; x < COLS; x++) {
+                    const cellData = editorMapData[y][x];
+                    map[y][x] = cellData.wall;
+
+                    if (cellData.entity === 'player') {
+                        player.x = x + 0.5;
+                        player.y = y + 0.5;
+                    } else if (cellData.entity?.type) {
+                        enemies.push({
+                            x: x + 0.5, y: y + 0.5, type: cellData.entity.type,
+                            movement: cellData.entity.movement || 'active',
+                            hp: 20, alive: true, cooldown: 0
+                        });
+                    } else if (cellData.entity === 'health') {
+                        items.push({ x: x + 0.5, y: y + 0.5, type: 'health', active: true });
+                    } else if (cellData.entity === 'treasure') {
+                        items.push({ x: x + 0.5, y: y + 0.5, type: 'treasure', active: true });
+                    } else if (cellData.entity === 'exit') {
+                        items.push({ x: x + 0.5, y: y + 0.5, type: 'exit', active: true });
                     }
-                    else if (['health', 'treasure', 'exit'].includes(cell.entity)) {
-                        items.push({ x: x + 0.5, y: y + 0.5, type: cell.entity, active: true });
-                    }
-                    if (cell.sign) {
-                        signs[`${y},${x}`] = cell.sign;
-                        if (!signTextures[cell.sign]) signTextures[cell.sign] = createSignTexture(cell.sign);
-                        if (cell.wall === 0) items.push({ x: x + 0.5, y: y + 0.5, type: 'sign', text: cell.sign, active: true });
+
+                    if (cellData.sign) {
+                        signs[`${y},${x}`] = cellData.sign;
+                        if (!signTextures[cellData.sign]) {
+                            signTextures[cellData.sign] = generateSignTexture(cellData.sign);
+                        }
                     }
                 }
-                map.push(row);
             }
+        }
 
-            if(!playerFound && !isStandaloneMode) { alert('플레이어 시작 지점(😎)을 맵에 배치해주세요!'); return; }
+        function generateSignTexture(text) {
+            const texData = Array(64).fill().map(() => Array(64).fill(null));
+            for (let i = 0; i < Math.min(text.length * 8, 64); i++) {
+                for (let j = 0; j < 64; j++) {
+                    if (Math.random() > 0.7) texData[j][i] = {r: 200, g: 200, b: 200};
+                }
+            }
+            return texData;
+        }
 
-            let fovVal = 66;
+        function updateScoreUI() {
+            // Score display would go here if needed
+        }
+
+        function startGame(isStandaloneArg) {
+            isStandaloneMode = isStandaloneArg;
+            buildGameMap();
+            
             if (!isStandaloneMode) {
                 useFog = document.getElementById('fog-enable').checked;
                 fogMaxDist = parseFloat(document.getElementById('fog-density').value);
@@ -1280,23 +1375,12 @@
             else { fillBar.style.background = '#ff3333'; fillBar.style.boxShadow = '0 0 8px #ff3333'; }
         }
 
-        // 미니멀리즘 탄약 게이지 바 UI 업데이트 로직
         function updateAmmoUI() {
             const ammoPercent = (player.ammo / player.maxAmmo) * 100;
             const fillBar = document.getElementById('hud-ammo-fill');
             if(!fillBar) return;
             fillBar.style.width = `${Math.max(0, ammoPercent)}%`;
-            
-            if (ammoPercent <= 25) {
-                fillBar.style.background = '#ff3333';
-                fillBar.style.boxShadow = '0 0 8px #ff3333';
-            } else {
-                fillBar.style.background = '#ff9900';
-                fillBar.style.boxShadow = '0 0 8px #ff9900';
-            }
         }
-
-        function updateScoreUI() { } 
 
         function playerTakeDamage(amt) {
             if (player.health <= 0) return;
@@ -1455,7 +1539,7 @@
                 ctx.fillRect(0, screenHeight - 1 - y, screenWidth, 1);
             }
 
-            // 벽 및 벽에 붙은 간판 렌더링
+            // 벽 렌더링
             for (let x = 0; x < screenWidth; x++) {
                 const cameraX = 2 * x / screenWidth - 1;
                 const rayDirX = player.dirX + player.planeX * cameraX;
@@ -1491,42 +1575,6 @@
 
                 ctx.fillStyle = getFogColor(r, g, b, perpWallDist, fogMaxDist);
                 ctx.fillRect(x, drawStart, 1, drawEnd - drawStart);
-
-                const signText = signs[`${mapY},${mapX}`];
-                if (signText && signTextures[signText]) {
-                    const texData = signTextures[signText];
-                    let wallX;
-                    if (side === 0) wallX = player.y + perpWallDist * rayDirY;
-                    else wallX = player.x + perpWallDist * rayDirX;
-                    wallX -= Math.floor(wallX);
-
-                    let texX = Math.floor(wallX * 64);
-                    // 간판이 4면 어디에서든 뒤집히지 않게 보정 로직 완전 수정
-                    if (side === 0 && rayDirX < 0) texX = 64 - texX - 1;
-                    if (side === 1 && rayDirY > 0) texX = 64 - texX - 1;
-                    
-                    if(texX >= 0 && texX < 64) {
-                        const rawDrawStart = -lineHeight / 2 + screenHeight / 2;
-                        const stepY = lineHeight / 64;
-                        let currentTexColor = null;
-                        let blockStartY = 0;
-                        for (let texY = 0; texY <= 64; texY++) {
-                            let colorObj = (texY < 64) ? texData[texY][texX] : null;
-                            if (colorObj !== currentTexColor) {
-                                if (currentTexColor) {
-                                    let yStart = Math.max(0, Math.floor(rawDrawStart + blockStartY * stepY));
-                                    let yEnd = Math.min(screenHeight - 1, Math.floor(rawDrawStart + texY * stepY));
-                                    if (yEnd > yStart) {
-                                        ctx.fillStyle = getFogColor(currentTexColor.r, currentTexColor.g, currentTexColor.b, perpWallDist, fogMaxDist);
-                                        ctx.fillRect(x, yStart, 1, yEnd - yStart);
-                                    }
-                                }
-                                currentTexColor = colorObj;
-                                blockStartY = texY;
-                            }
-                        }
-                    }
-                }
             }
         }
 
@@ -1562,188 +1610,50 @@
             items.forEach(i => { if(i.active) renderList.push({type: 'item', obj: i, dist: (player.x - i.x)**2 + (player.y - i.y)**2}); });
             
             renderList.sort((a, b) => b.dist - a.dist);
-
-            renderList.forEach(item => {
-                const entity = item.obj;
-                const spriteX = entity.x - player.x, spriteY = entity.y - player.y;
+            
+            renderList.forEach(entry => {
+                const obj = entry.obj;
+                const spriteX = obj.x - player.x, spriteY = obj.y - player.y;
                 const invDet = 1.0 / (player.planeX * player.dirY - player.dirX * player.planeY);
                 const transformX = invDet * (player.dirY * spriteX - player.dirX * spriteY);
                 const transformY = invDet * (-player.planeY * spriteX + player.planeX * spriteY);
 
-                if (transformY <= 0) return;
+                if (transformY > 0) {
+                    const spriteScreenX = Math.floor((screenWidth / 2) * (1 + transformX / transformY));
+                    const spriteWidth = Math.abs(Math.floor(screenHeight / transformY));
+                    const drawStartX = Math.floor(-spriteWidth / 2 + spriteScreenX);
+                    const drawEndX = Math.floor(spriteWidth / 2 + spriteScreenX);
+                    const drawStartY = Math.max(0, Math.floor(-spriteWidth / 2 + screenHeight / 2));
+                    const drawEndY = Math.min(screenHeight - 1, Math.floor(spriteWidth / 2 + screenHeight / 2));
 
-                const spriteScreenX = Math.floor((screenWidth / 2) * (1 + transformX / transformY));
-                const spriteHeight = Math.abs(Math.floor(screenHeight / transformY));
-                const spriteWidth = spriteHeight;
+                    let color = '#fff';
+                    if (entry.type === 'enemy') color = entry.obj.type === 'melee' ? '#f00' : '#f0f';
+                    else if (entry.type === 'proj') color = '#ff0';
+                    else if (entry.type === 'item') color = '#0f0';
 
-                let drawStartY, drawEndY, drawStartX, drawEndX;
-                let isProj = (item.type === 'proj');
-                let isItem = (item.type === 'item');
-
-                if (isProj) {
-                    const projSize = spriteHeight / 4;
-                    drawStartY = Math.max(0, Math.floor(-projSize / 2 + screenHeight / 2));
-                    drawEndY = Math.min(screenHeight - 1, Math.floor(projSize / 2 + screenHeight / 2));
-                    drawStartX = Math.max(0, Math.floor(-projSize / 2 + spriteScreenX));
-                    drawEndX = Math.min(screenWidth - 1, Math.floor(projSize / 2 + spriteScreenX));
-                } else if (isItem && entity.type !== 'sign') {
-                    const iSize = (entity.type === 'exit') ? spriteHeight : spriteHeight / 2;
-                    drawStartY = Math.max(0, Math.floor(screenHeight / 2 + spriteHeight / 2 - iSize));
-                    drawEndY = Math.min(screenHeight - 1, Math.floor(screenHeight / 2 + spriteHeight / 2));
-                    drawStartX = Math.max(0, Math.floor(-iSize / 2 + spriteScreenX));
-                    drawEndX = Math.min(screenWidth - 1, Math.floor(iSize / 2 + spriteScreenX));
-                    if (entity.type === 'exit') drawStartY = Math.max(0, Math.floor(-spriteHeight / 2 + screenHeight / 2));
-                } else {
-                    drawStartY = Math.floor(-spriteHeight / 2 + screenHeight / 2);
-                    drawEndY = Math.floor(spriteHeight / 2 + screenHeight / 2);
-                    drawStartX = Math.max(0, Math.floor(-spriteWidth / 2 + spriteScreenX));
-                    drawEndX = Math.min(screenWidth - 1, Math.floor(spriteWidth / 2 + spriteScreenX));
-                }
-
-                const originalDrawStartX = Math.floor(-spriteWidth / 2 + spriteScreenX);
-
-                for (let stripe = drawStartX; stripe < drawEndX; stripe++) {
-                    if (transformY > 0 && stripe > 0 && stripe < screenWidth && transformY < ZBuffer[stripe]) {
-                        
-                        if (isProj) {
-                            ctx.fillStyle = getFogColor(255, 255, 0, transformY, fogMaxDist);
-                            ctx.fillRect(stripe, drawStartY, 1, drawEndY - drawStartY);
-                        } else if (isItem && entity.type === 'sign') {
-                            const texData = signTextures[entity.text];
-                            const texWidth = 64, texHeight = 64;
-                            const texX = Math.floor((stripe - originalDrawStartX) * texWidth / spriteWidth);
-                            
-                            if(texX >= 0 && texX < texWidth) {
-                                const stepY = spriteHeight / texHeight;
-                                let currentTexColor = null;
-                                let blockStartY = 0;
-
-                                for (let texY = 0; texY <= texHeight; texY++) {
-                                    let colorObj = (texY < texHeight) ? texData[texY][texX] : null;
-                                    if (colorObj !== currentTexColor) {
-                                        if (currentTexColor) {
-                                            let yStart = Math.max(0, Math.floor(drawStartY + blockStartY * stepY));
-                                            let yEnd = Math.min(screenHeight - 1, Math.floor(drawStartY + texY * stepY));
-                                            if (yEnd > yStart) {
-                                                ctx.fillStyle = getFogColor(currentTexColor.r, currentTexColor.g, currentTexColor.b, transformY, fogMaxDist);
-                                                ctx.fillRect(stripe, yStart, 1, yEnd - yStart);
-                                            }
-                                        }
-                                        currentTexColor = colorObj;
-                                        blockStartY = texY;
-                                    }
-                                }
-                            }
-                        } else if (isItem) {
-                            let iColor = {r: 255, g: 255, b: 255}; 
-                            if (entity.type === 'treasure') iColor = {r: 255, g: 215, b: 0}; 
-                            if (entity.type === 'exit') iColor = {r: 139, g: 69, b: 19}; 
-                            
-                            ctx.fillStyle = getFogColor(iColor.r, iColor.g, iColor.b, transformY, fogMaxDist);
-                            ctx.fillRect(stripe, drawStartY, 1, drawEndY - drawStartY);
-
-                            if (entity.type === 'health') {
-                                const texX = (stripe - drawStartX) / (drawEndX - drawStartX);
-                                if (texX > 0.4 && texX < 0.6) {
-                                    const hSize = drawEndY - drawStartY;
-                                    ctx.fillStyle = getFogColor(255, 0, 0, transformY, fogMaxDist);
-                                    ctx.fillRect(stripe, drawStartY + hSize*0.2, 1, hSize*0.6);
-                                }
-                            }
-                        } else {
-                            if (customSprite) {
-                                const texWidth = 32, texHeight = 32;
-                                const texX = Math.floor((stripe - originalDrawStartX) * texWidth / spriteWidth);
-                                
-                                if(texX >= 0 && texX < texWidth) {
-                                    const stepY = spriteHeight / texHeight;
-                                    let currentTexColor = null;
-                                    let blockStartY = 0;
-
-                                    for (let texY = 0; texY <= texHeight; texY++) {
-                                        let colorObj = (texY < texHeight) ? customSprite[texY][texX] : null;
-
-                                        if (colorObj !== currentTexColor) {
-                                            if (currentTexColor) {
-                                                let yStart = Math.max(0, Math.floor(drawStartY + blockStartY * stepY));
-                                                let yEnd = Math.min(screenHeight - 1, Math.floor(drawStartY + texY * stepY));
-                                                
-                                                if (yEnd > yStart) {
-                                                    ctx.fillStyle = getFogColor(currentTexColor.r, currentTexColor.g, currentTexColor.b, transformY, fogMaxDist);
-                                                    ctx.fillRect(stripe, yStart, 1, yEnd - yStart);
-                                                }
-                                            }
-                                            currentTexColor = colorObj;
-                                            blockStartY = texY;
-                                        }
-                                    }
-                                }
-                            } 
-                            else {
-                                let baseColor = {r: 220, g: 50, b: 50}; 
-                                if (entity.type === 'melee' && entity.movement === 'static') baseColor = {r: 220, g: 120, b: 0}; 
-                                if (entity.type === 'ranged' && entity.movement === 'active') baseColor = {r: 50, g: 50, b: 220}; 
-                                if (entity.type === 'ranged' && entity.movement === 'static') baseColor = {r: 50, g: 220, b: 220}; 
-                                
-                                let yS = Math.max(0, drawStartY), yE = Math.min(screenHeight - 1, drawEndY);
-                                ctx.fillStyle = getFogColor(baseColor.r, baseColor.g, baseColor.b, transformY, fogMaxDist);
-                                ctx.fillRect(stripe, yS, 1, yE - yS);
-                                
-                                const texX = (stripe - originalDrawStartX) / spriteWidth;
-                                if ((texX > 0.25 && texX < 0.4) || (texX > 0.6 && texX < 0.75)) {
-                                    const eyeStart = Math.max(yS, drawStartY + spriteHeight * 0.2);
-                                    const eyeEnd = Math.min(yE, drawStartY + spriteHeight * 0.35);
-                                    if (eyeEnd > eyeStart) {
-                                        ctx.fillStyle = getFogColor(0, 0, 0, transformY, fogMaxDist);
-                                        ctx.fillRect(stripe, eyeStart, 1, eyeEnd - eyeStart);
-                                    }
-                                }
-                            }
+                    for (let x = drawStartX; x < drawEndX; x++) {
+                        if (x >= 0 && x < screenWidth && transformY < ZBuffer[x]) {
+                            ctx.fillStyle = color;
+                            ctx.fillRect(x, drawStartY, 1, drawEndY - drawStartY);
                         }
                     }
                 }
             });
         }
 
-        function drawWeapon() {
-            if(player.health <= 0) return;
-            const centerX = screenWidth / 2, bottomY = screenHeight;
-            const scale = screenHeight / 480;
-            const bobY = Math.abs(Math.sin(player.weaponBob)) * 15 * scale;
-            const recoilY = player.isShooting ? 30 * scale : 0, recoilX = player.isShooting ? (Math.random() * 8 - 4) * scale : 0;
-            
-            // 재장전 중 무기 하강 애니메이션 적용
-            let reloadOffset = 0;
-            if (player.isReloading) {
-                const progress = player.reloadTimer / 1.5; 
-                reloadOffset = Math.sin(progress * Math.PI) * 120 * scale; 
-            }
+        function gameLoop(currentTime) {
+            const deltaTime = Math.min((currentTime - lastTime) / 1000, 0.016);
+            lastTime = currentTime;
 
-            const gunX = centerX + recoilX, gunY = bottomY + bobY + recoilY + reloadOffset;
-
-            ctx.fillStyle = '#222'; ctx.fillRect(gunX - 15 * scale, gunY - 160 * scale, 30 * scale, 160 * scale);
-            ctx.fillStyle = '#111'; ctx.fillRect(gunX - 5 * scale, gunY - 160 * scale, 10 * scale, 140 * scale);
-            ctx.fillStyle = '#444'; ctx.fillRect(gunX - 35 * scale, gunY - 70 * scale, 70 * scale, 90 * scale);
-
-            if (player.isShooting && !player.isReloading) {
-                ctx.fillStyle = 'rgba(255, 140, 0, 0.8)';
-                ctx.beginPath(); ctx.arc(gunX, gunY - 170 * scale, (30 + Math.random() * 15) * scale, 0, Math.PI * 2); ctx.fill();
-                ctx.fillStyle = 'rgba(255, 255, 50, 0.9)';
-                ctx.beginPath(); ctx.arc(gunX, gunY - 175 * scale, (15 + Math.random() * 10) * scale, 0, Math.PI * 2); ctx.fill();
-            }
-        }
-
-        let lastTime = 0;
-        function gameLoop(timestamp) {
-            if (!isPlaying) return;
-            const deltaTime = (timestamp - lastTime) / 1000.0;
-            lastTime = timestamp;
-            update(deltaTime); draw(); drawSprites(); drawWeapon(); 
+            update(deltaTime);
+            draw();
+            drawSprites();
             if (useMinimap) drawMinimap();
-            gameReqId = requestAnimationFrame(gameLoop);
-        }
 
-        initDefaultMap();
+            weaponRenderer.draw(Math.sin(player.weaponBob) * 0.3, player.isShooting ? 0.5 : 0, player.isShooting);
+
+            if (isPlaying) gameReqId = requestAnimationFrame(gameLoop);
+        }
     </script>
 </body>
 </html>
